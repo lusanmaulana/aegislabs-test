@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\user;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -22,11 +24,15 @@ class UserController extends Controller
         }
 
         $users = User::query()
+            ->select('users.id', 'email', 'name', 'users.created_at')
+            ->selectRaw('count(orders.id) as order_count')
+            ->leftJoin('orders', 'users.id', '=', 'orders.user_id')
             ->where('active', true)
             ->where('name', 'like', "%$search%")
             ->orWhere('email', 'like', "%$search%")
             ->skip(($page - 1) * $pageCount)
             ->take($pageCount)
+            ->groupBy('users.id', 'email', 'name', 'users.created_at')
             ->orderBy($sortBy)
             ->get();
 
