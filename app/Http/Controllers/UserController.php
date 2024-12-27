@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\user;
+use App\Mail\NewUserNotificationMail;
+use App\Mail\WelcomeMail;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -64,8 +65,9 @@ class UserController extends Controller
             ], 422);
         }
 
-        // $user = User::create($request->all());
         $user = User::create($request->only(['email', 'password', 'name']));
+        Mail::to($user->email)->send(new WelcomeMail($user));
+        Mail::to('admin@mail.com')->send(new NewUserNotificationMail($user));
         return response()->json($user, 200);
     }
 }
